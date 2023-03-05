@@ -26,6 +26,20 @@ async def on_ready():
 
 
 @bot.command()
+async def helpme(ctx):
+    msg = """
+    Commands:
+        !helpme
+            prints you this help menu. 
+
+        !roll <dice_amount>d<side_amount>
+            Roll dice and recieve all the dice added together.
+            Example: "!roll 2d8 d10", will roll two dice with eight sides and one die with 10 sides.
+    """
+    await ctx.channel.send(msg)
+
+
+@bot.command()
 async def roll(ctx, *expressions):
     """
     Roll dice!
