@@ -10,6 +10,8 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+roll_history = {}  # roll function fills this
+
 
 @bot.event
 async def on_ready():
@@ -59,10 +61,18 @@ async def roll(ctx, *expressions):
         for _ in range(dice_amount):
             rolled_dice.append(dice.roll(side_amount=side_amount))
 
-    author = str(ctx.author).split("#")[0]
     result = sum(rolled_dice)
-    response = f"{author} rolled some dice, added together we get: {result}"
+    response = f"{ctx.author.nick} rolled some dice, added together we get: {result}"
     await ctx.channel.send(response)
+
+    roll_history[str(ctx.author)] = expressions
+
+
+async def save(ctx, alias):
+    """
+    Alias and save the last rolled set of dice for a user.
+    """
+    pass
 
 
 bot.run(TOKEN)
