@@ -34,7 +34,7 @@ async def helpme(ctx):
         !helpme
             prints you this help menu. 
 
-        !roll <dice_amount>d<side_amount>
+        !r <dice_amount>d<side_amount>
             Roll dice and recieve all the dice added together.
             Example: "!roll 2d8 d10", will roll two dice with eight sides and one die with 10 sides.
     """
@@ -42,7 +42,7 @@ async def helpme(ctx):
 
 
 @bot.command()
-async def roll(ctx, *expressions):
+async def r(ctx, *expressions):  # roll, keep short for easier command
     """
     Roll dice!
 
