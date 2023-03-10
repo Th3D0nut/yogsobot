@@ -1,8 +1,12 @@
+import sqlite3
+from os.path import join, isfile
+
 import discord
 from discord.ext import commands
 
-from settings import TOKEN
+from settings import TOKEN, ROOT
 from userinput.parse import parse_roll_expression
+from database.utills import init_tables
 import dice
 
 intents = discord.Intents.default()
@@ -10,7 +14,12 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-roll_history = {}  # roll function fills this
+roll_history = []  # Roll function fills this
+
+PATH_TO_DB = join(ROOT, "aliasroll.db")
+db_connection = sqlite3.connect(PATH_TO_DB)
+db_curs = db_connection.cursor()
+init_tables(db_curs)
 
 
 @bot.event
@@ -42,7 +51,7 @@ async def helpme(ctx):
 
 
 @bot.command()
-async def r(ctx, *expressions):  # roll, keep short for easier command
+async def r(ctx, *expressions):  # Roll, keep short for easier command
     """
     Roll dice!
 
@@ -65,14 +74,18 @@ async def r(ctx, *expressions):  # roll, keep short for easier command
     response = f"{ctx.author.nick} rolled some dice, added together we get: {result}"
     await ctx.channel.send(response)
 
-    roll_history[str(ctx.author)] = expressions
+    roll_history.append({
+            "id": ctx.author.id,
+            "nickname": ctx.author.nick,
+            "expression": expressions,
+        })
 
 
 async def save(ctx, alias):
     """
     Alias and save the last rolled set of dice for a user.
     """
-    pass
+    username = ctx.author.id
 
 
 bot.run(TOKEN)
