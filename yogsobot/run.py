@@ -1,5 +1,5 @@
 import sqlite3
-from os.path import join, isfile
+from os.path import join
 
 import discord
 from discord.ext import commands
