@@ -6,13 +6,13 @@ from discord.ext import commands
 
 from settings import TOKEN, ROOT, MY_ID 
 from userinput.parse import parse_roll_expression
-from database.utills import init_tables
+from database.utills import init_tables, save_user
 import dice
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+client = commands.Bot(command_prefix='!', intents=intents)
 
 roll_history = []  # Roll function fills this
 
@@ -22,12 +22,12 @@ db_curs = db_connection.cursor()
 init_tables(db_curs)
 
 
-@bot.event
+@client.event
 async def on_ready():
-    print(f"{bot.user} has joined the server!")
+    print(f"{client.user} has joined the server!")
 
 
-@bot.command()
+@client.command()
 async def helpme(ctx):
     msg = """
     Commands:
@@ -41,7 +41,7 @@ async def helpme(ctx):
     await ctx.channel.send(msg)
 
 
-@bot.command()
+@client.command()
 async def r(ctx, *expressions):  # Roll, keep short for easier command
     """
     Roll dice!
@@ -62,7 +62,10 @@ async def r(ctx, *expressions):  # Roll, keep short for easier command
             rolled_dice.append(dice.roll(side_amount=side_amount))
 
     result = sum(rolled_dice)
-    response = f"{ctx.author.nick} rolled some dice, added together we get: {result}"
+    dice_rolls = " ".join(expressions)
+    dice_results = " + ".join([str(die) for die in rolled_dice])
+    response = (f"> **{ctx.author.nick}** rolled {dice_rolls}\n" \
+            f"> {dice_results} is **{result}**")
     await ctx.channel.send(response)
 
     roll_history.append({
@@ -72,29 +75,31 @@ async def r(ctx, *expressions):  # Roll, keep short for easier command
         })
 
 
-@bot.command()
+@client.command()
 async def shutdown(ctx):
     """Remote shutdown"""
-    if ctx.author.id == MY_ID:
-        await bot.close()
+    if ctx.author.id == int(MY_ID):
+        await client.close()
 
 
-# @bot.command()
-# async def save(ctx):
-#     """
-#     Alias and save the last rolled set of dice for a user.
-#     """
-#     discord_id = ctx.author.id
-#     nick = ctx.author.nick
-#     user = db_curs.execute(
-#         "SELECT discord_id FROM user WHERE discord_id = ?;",
-#         discord_id
-#         )
-#     if not user.fetchone():
-#         db_curs.execute(
-#             "INSERT INTO user (discord_id, nick) VALUES (?, ?);",
-#             discord_id, nick
-#             )
+@client.command()
+async def save(ctx, alias=None):
+    """
+    Alias and save the last rolled set of dice for a user.
+    """
+    if not alias:
+        await ctx.channel.send("Alias for roll save?")
+
+        while True:
+            msg = await client.wait_for('message')
+            if alias.author == ctx.author:
+                alias = msg.content.strip()
+                if " " in alias:  # Strip to account for accidental spacebar strokes
+                    raise ValueError("No whitespace in alias allowed")
+
+    discord_id = ctx.author.id
+    nickname = ctx.author.nick
+    save_user(db_curs, discord_id, nickname)
 
 
-bot.run(TOKEN)
+client.run(TOKEN)
