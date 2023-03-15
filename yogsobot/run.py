@@ -4,7 +4,7 @@ from os.path import join
 import discord
 from discord.ext import commands
 
-from settings import TOKEN, ROOT
+from settings import TOKEN, ROOT, MY_ID 
 from userinput.parse import parse_roll_expression
 from database.utills import init_tables
 import dice
@@ -25,15 +25,6 @@ init_tables(db_curs)
 @bot.event
 async def on_ready():
     print(f"{bot.user} has joined the server!")
-
-
-# maybe implement later
-# @bot.event
-# async def on_message(message):
-#     if message.author == bot.user:
-#         return
-
-#     await bot.process_commands(message)
 
 
 @bot.command()
@@ -81,11 +72,29 @@ async def r(ctx, *expressions):  # Roll, keep short for easier command
         })
 
 
-async def save(ctx, alias):
-    """
-    Alias and save the last rolled set of dice for a user.
-    """
-    username = ctx.author.id
+@bot.command()
+async def shutdown(ctx):
+    """Remote shutdown"""
+    if ctx.author.id == MY_ID:
+        await bot.close()
+
+
+# @bot.command()
+# async def save(ctx):
+#     """
+#     Alias and save the last rolled set of dice for a user.
+#     """
+#     discord_id = ctx.author.id
+#     nick = ctx.author.nick
+#     user = db_curs.execute(
+#         "SELECT discord_id FROM user WHERE discord_id = ?;",
+#         discord_id
+#         )
+#     if not user.fetchone():
+#         db_curs.execute(
+#             "INSERT INTO user (discord_id, nick) VALUES (?, ?);",
+#             discord_id, nick
+#             )
 
 
 bot.run(TOKEN)
