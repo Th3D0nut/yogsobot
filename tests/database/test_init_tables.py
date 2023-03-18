@@ -1,14 +1,6 @@
-import os
-from os.path import join, dirname
-import sqlite3
-
-import pytest
+from imports import *
 
 from yogsobot.database.utills import init_tables
-
-
-DIR = dirname(__file__)
-PATH_TO_DB = join(DIR, "test.db")
 
 
 @pytest.fixture(autouse=True)
