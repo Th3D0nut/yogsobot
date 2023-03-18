@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from settings import TOKEN, ROOT, MY_ID 
 from userinput.parse import parse_roll_expression
-from database.utills import init_tables, save_user
+from database.transactions import init_tables, save_user
 import dice
 
 intents = discord.Intents.default()
@@ -42,7 +42,7 @@ async def helpme(ctx):
 
 
 @client.command()
-async def r(ctx, *expressions):  # Roll, keep short for easier command
+async def roll(ctx, *expressions):  # Roll, keep short for easier command
     """
     Roll dice!
 
@@ -73,6 +73,12 @@ async def r(ctx, *expressions):  # Roll, keep short for easier command
             "nickname": ctx.author.nick,
             "expression": expressions,
         })
+
+
+@client.command()
+async def r(ctx, *expressions):
+    """Shorthand for roll function."""
+    await roll(ctx, *expressions)
 
 
 @client.command()
