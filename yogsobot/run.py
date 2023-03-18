@@ -93,8 +93,8 @@ async def save(ctx, alias=None):
         while True:
             msg = await client.wait_for('message')
             if alias.author == ctx.author:
-                alias = msg.content.strip()
-                if " " in alias:  # Strip to account for accidental spacebar strokes
+                alias = msg.content.strip()  # Strip to account for accidental spacebar strokes
+                if " " in alias:
                     raise ValueError("No whitespace in alias allowed")
 
     discord_id = ctx.author.id
