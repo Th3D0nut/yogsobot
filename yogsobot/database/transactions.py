@@ -1,11 +1,19 @@
 def init_tables(db_curs):
-    if not db_curs.execute("SELECT name FROM sqlite_master").fetchone():
-        db_curs.execute(
-            "create table user(id int, discord_id varchar(30), nickname varchar(30));"
-            )
-        db_curs.execute(
-            "create table alias(id int, user_id int, name varchar(30), roll_expression varchar(200));"
-            )
+    db_curs.execute("""
+        CREATE TABLE IF NOT EXISTS user(
+            id INTEGER PRIMARY KEY,
+            discord_id TEXT NOT NULL UNIQUE,
+            nickname VARCHAR(30)
+            );
+        """)
+    db_curs.execute("""
+        CREATE TABLE IF NOT EXISTS alias(
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            roll_expression TEXT
+            );
+        """)
 
 
 def save_user(db_curs, discord_id, nickname):
