@@ -1,6 +1,6 @@
 from imports import *
 
-from yogsobot.database.utills import init_tables
+from yogsobot.database.transactions import init_tables
 
 
 @pytest.fixture(autouse=True)
@@ -12,7 +12,7 @@ def run_around_tests():
     # Teardown
     db_curs.close()
     db_connection.close()
-    testdb = join(DIR, "test.db")
+    testdb = join(PATH_TO_DB)
     os.remove(testdb)
 
 

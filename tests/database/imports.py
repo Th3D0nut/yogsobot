@@ -5,5 +5,4 @@ import sqlite3
 import pytest
 
 
-DIR = dirname(__file__)
-PATH_TO_DB = join(DIR, "test.db")
+PATH_TO_DB = join(dirname(__file__), "test.db")
