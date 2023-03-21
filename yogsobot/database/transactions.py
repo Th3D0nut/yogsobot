@@ -1,28 +1,30 @@
-def init_tables(db_curs):
-    db_curs.execute("""
-        CREATE TABLE IF NOT EXISTS user(
-            id INTEGER PRIMARY KEY,
-            discord_id TEXT NOT NULL UNIQUE,
-            nickname VARCHAR(30)
-            );
-        """)
-    db_curs.execute("""
-        CREATE TABLE IF NOT EXISTS alias(
-            id INTEGER PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            roll_expression TEXT
-            );
-        """)
+import sqlite3
 
 
-def save_user(db_curs, discord_id, nickname):
-    user = db_curs.execute(
-        "SELECT discord_id FROM user WHERE discord_id = ?;",
-        discord_id
-        )
-    if not user.fetchone():
-        db_curs.execute(
-            "INSERT INTO user (discord_id, nick) VALUES (?, ?);",
-            discord_id, nickname
+class DatabaseActor:
+    def __init__(self, path_to_db):
+        self.connection = sqlite3.connect(path_to_db)
+        self.cursor = self.connection.cursor()
+
+    def init_tables(self):
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user(
+                id INTEGER PRIMARY KEY,
+                discord_id TEXT NOT NULL UNIQUE
+                );
+            """)
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS roll_alias(
+                id INTEGER PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                roll TEXT
+                );
+            """)
+
+    def save_user(self, discord_id):
+        self.cursor.execute(
+            "INSERT INTO user (discord_id) VALUES (?);",
+            (discord_id,)
             )
+        self.connection.commit()

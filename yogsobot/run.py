@@ -16,10 +16,8 @@ client = commands.Bot(command_prefix='!', intents=intents)
 
 roll_history = []  # Roll function fills this
 
-PATH_TO_DB = join(ROOT, "aliasroll.db")
-db_connection = sqlite3.connect(PATH_TO_DB)
-db_curs = db_connection.cursor()
-init_tables(db_curs)
+PATH_TO_DB = path.join(ROOT, "aliasroll.db")
+init_tables()
 
 
 @client.event
