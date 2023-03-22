@@ -1,11 +1,12 @@
 import os
+from sqlite3 import IntegrityError
 
 import discord
 from discord.ext import commands
 
 from settings import TOKEN, ROOT, MY_ID 
 from userinput.parse import parse_roll_expression
-from database.transactions import init_tables, save_user
+from database.transactions import DatabaseActor
 import dice
 
 intents = discord.Intents.default()
@@ -16,7 +17,8 @@ client = commands.Bot(command_prefix='!', intents=intents)
 roll_history = []  # Roll function fills this
 
 PATH_TO_DB = os.path.join(ROOT, "aliasroll.db")
-init_tables()
+db = DatabaseActor(PATH_TO_DB)
+db.init_tables()
 
 
 @client.event
@@ -66,7 +68,7 @@ async def roll(ctx, *expressions):  # Roll, keep short for easier command
     await ctx.channel.send(response)
 
     roll_history.append({
-            "id": ctx.author.id,
+            "discord_id": ctx.author.id,
             "nickname": ctx.author.nick,
             "expression": expressions,
         })
@@ -97,12 +99,26 @@ async def save(ctx, alias=None):
             msg = await client.wait_for('message')
             if alias.author == ctx.author:
                 alias = msg.content.strip()  # Strip to account for accidental spacebar strokes
-                if " " in alias:
-                    raise ValueError("No whitespace in alias allowed")
+
+    if " " in alias:
+        raise ValueError("No whitespace in alias allowed")
 
     discord_id = ctx.author.id
-    nickname = ctx.author.nick
-    save_user(discord_id, nickname)
+    last_roll = None
+    for item in roll_history:
+        if item["discord_id"] == discord_id:
+            last_roll = item["expression"]
+
+    try:
+        db.save_user(discord_id)
+    except IntegrityError as e:
+        print(e)
+    db.save_roll(discord_id, alias, *last_roll)
+
+
+@client.command()
+async def cast(ctx, alias):
+    await roll(ctx, db.get_roll(ctx.author.id, alias))
 
 
 client.run(TOKEN)
