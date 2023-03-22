@@ -1,5 +1,4 @@
-import sqlite3
-from os.path import join
+import os
 
 import discord
 from discord.ext import commands
@@ -16,7 +15,7 @@ client = commands.Bot(command_prefix='!', intents=intents)
 
 roll_history = []  # Roll function fills this
 
-PATH_TO_DB = path.join(ROOT, "aliasroll.db")
+PATH_TO_DB = os.path.join(ROOT, "aliasroll.db")
 init_tables()
 
 
@@ -103,7 +102,7 @@ async def save(ctx, alias=None):
 
     discord_id = ctx.author.id
     nickname = ctx.author.nick
-    save_user(db_curs, discord_id, nickname)
+    save_user(discord_id, nickname)
 
 
 client.run(TOKEN)

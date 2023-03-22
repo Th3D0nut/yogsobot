@@ -42,7 +42,7 @@ def test_does_not_save_user_that_already_exist(db):
         db.save_user(discord_id="12345678")
 
 
-# tests
+# save_roll tests
 def test_find_roll_in_db_after_saving_it(db):
     db.init_tables()
     db.save_user(discord_id="12345678")
@@ -52,3 +52,12 @@ def test_find_roll_in_db_after_saving_it(db):
         WHERE user_id = 12345678 AND alias = 'fireball';
     """)
     assert discord_id.fetchone() == ("12345678", "fireball")
+
+
+# get_roll tests
+def test_get_saved_roll(db):
+    db.init_tables()
+    db.save_user(discord_id="12345678")
+    db.save_roll(discord_id="12345678", alias="fireball", roll_expression="2d8 d10")
+
+    assert db.get_roll(discord_id="12345678", alias="fireball") == "2d8 d10"

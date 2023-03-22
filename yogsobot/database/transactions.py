@@ -11,7 +11,7 @@ class DatabaseActor:
             CREATE TABLE IF NOT EXISTS user(
                 discord_id TEXT NOT NULL UNIQUE
                 );
-            """)  # discord_id replaces the need for a primary key
+        """)  # discord_id replaces the need for a primary key
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS roll_alias(
                 id INTEGER PRIMARY KEY,
@@ -19,13 +19,13 @@ class DatabaseActor:
                 alias TEXT NOT NULL,
                 roll_expression TEXT
                 );
-            """)
+        """)
 
     def save_user(self, discord_id: str):
         self.cursor.execute(
             "INSERT INTO user (discord_id) VALUES (?);",
             (discord_id,)
-            )
+        )
         self.connection.commit()
 
     def save_roll(self, discord_id: str, alias: str, roll_expression: str):
@@ -34,5 +34,14 @@ class DatabaseActor:
                 VALUES (?, ?, ?);
             """,
             (discord_id, alias, roll_expression)
-            )
+        )
         self.connection.commit()
+
+    def get_roll(self, discord_id: str, alias: str):
+        roll_expression = self.cursor.execute("""
+            SELECT roll_expression FROM roll_alias
+            WHERE user_id = ? AND alias = ?;
+            """,
+            (discord_id, alias)
+        ).fetchone()[0]
+        return roll_expression
