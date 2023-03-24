@@ -107,18 +107,19 @@ async def save(ctx, alias=None):
     last_roll = None
     for item in roll_history:
         if item["discord_id"] == discord_id:
-            last_roll = item["expression"]
+            last_roll = " ".join(item["expression"])
 
     try:
         db.save_user(discord_id)
     except IntegrityError as e:
         print(e)
-    db.save_roll(discord_id, alias, *last_roll)
+    if last_roll is not None:
+        db.save_roll(discord_id, alias, last_roll)
 
 
 @client.command()
 async def cast(ctx, alias):
-    await roll(ctx, db.get_roll(ctx.author.id, alias))
+    await roll(ctx, *db.get_roll(ctx.author.id, alias).split())
 
 
 client.run(TOKEN)
