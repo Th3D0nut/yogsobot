@@ -1,4 +1,5 @@
 def parse_roll_expression(expression: str) -> tuple[int, int]:
+    """From a string describing a dice roll, return the amount of dice and sides"""
     try:
         dice_amount, side_amount = expression.lower().split("d")
     except ValueError:
