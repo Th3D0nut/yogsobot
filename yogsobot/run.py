@@ -6,6 +6,7 @@ from discord.ext import commands
 
 from settings import TOKEN, ROOT, MY_ID 
 from userinput.parse import parse_roll_expression
+from userinput.history import update_roll_history
 from database.transactions import DatabaseActor
 import dice
 
@@ -67,6 +68,9 @@ async def roll(ctx, *expressions):  # Roll, keep short for easier command
             f"> {dice_results} is **{result}**")
     await ctx.channel.send(response)
 
+    # roll_history = update_roll_history(
+    #     roll_history, ctx.author.id, ctx.author.nick, expression
+    #     )
     roll_history.append({
             "discord_id": ctx.author.id,
             "nickname": ctx.author.nick,
