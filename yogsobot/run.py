@@ -15,7 +15,7 @@ intents.message_content = True
 
 client = commands.Bot(command_prefix='!', intents=intents)
 
-roll_history = []  # Roll function fills this
+roll_history = {}  # Use update_roll_history to fill this
 
 PATH_TO_DB = os.path.join(ROOT, "aliasroll.db")
 db = DatabaseActor(PATH_TO_DB)
@@ -68,14 +68,10 @@ async def roll(ctx, *expressions):  # Roll, keep short for easier command
             f"> {dice_results} is **{result}**")
     await ctx.channel.send(response)
 
-    # roll_history = update_roll_history(
-    #     roll_history, ctx.author.id, ctx.author.nick, expression
-    #     )
-    roll_history.append({
-            "discord_id": ctx.author.id,
-            "nickname": ctx.author.nick,
-            "expression": expressions,
-        })
+    global roll_history
+    roll_history = update_roll_history(
+        roll_history, ctx.author.id, ctx.author.nick, expression
+        )
 
 
 @client.command()
@@ -98,10 +94,11 @@ async def save(ctx, alias=None):
     """
     if not alias:
         await ctx.channel.send("Alias for roll save?")
+        alias_requester_id = ctx.author.id
 
         while True:
             msg = await client.wait_for('message')
-            if alias.author == ctx.author:
+            if alias_requester_id == ctx.author.id:
                 alias = msg.content.strip()  # Strip to account for accidental spacebar strokes
 
     if " " in alias:
@@ -109,14 +106,17 @@ async def save(ctx, alias=None):
 
     discord_id = ctx.author.id
     last_roll = None
-    for item in roll_history:
-        if item["discord_id"] == discord_id:
-            last_roll = " ".join(item["expression"])
+    try:
+        last_roll = " ".join(roll_history[discord_id]["expression"])
+    except KeyError:
+        return await ctx.channel.send("Previous roll not found for this user.")
+
 
     try:
         db.save_user(discord_id)
-    except IntegrityError as e:
-        print(e)
+    except IntegrityError:
+        # Do nothing when user already exists
+        pass
     if last_roll is not None:
         db.save_roll(discord_id, alias, last_roll)
 
