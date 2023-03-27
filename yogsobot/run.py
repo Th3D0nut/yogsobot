@@ -42,7 +42,7 @@ async def helpme(ctx):
 
 
 @client.command()
-async def roll(ctx, *expressions):  # Roll, keep short for easier command
+async def roll(ctx, *expressions: str):  # Roll, keep short for easier command
     """
     Roll dice!
 
@@ -50,27 +50,40 @@ async def roll(ctx, *expressions):  # Roll, keep short for easier command
     Arguments can be of <amount_of_rolls>"d"<side_amount>.
     So for example '2d6' will roll two dice with six sides.
     """
-    rolled_dice = []
+    # Will hold a die with the number of times it should be rolled. Example: ([d]6: 8)
+    dice_to_roll: dict[int, int] = {}
     for expression in expressions:
+        # Parse every argument send by the user
         try:
-            dice_amount, side_amount = parse_roll_expression(expression)
+            die_amount, side_amount = parse_roll_expression(expression)
+        # When a bad argument is found let user know and stop execution
         except ValueError as error:
+            # Handle by calling roll again with good arguments
             await ctx.channel.send(error)
             return
+        try:
+            die_amount_in_dict = dice_to_roll[side_amount] 
+            dice_to_roll[side_amount] = die_amount_in_dict + die_amount
+        except KeyError:
+            dice_to_roll[side_amount] = die_amount
+        # Roll a type of die times "dice_amount" and add it to rolled_dice
 
-        for _ in range(dice_amount):
-            rolled_dice.append(dice.roll(side_amount=side_amount))
+    roll_results = []
+    for side_amount, die_amount in dice_to_roll.items():
+        roll_results.append(dice.roll(side_amount))
 
-    result = sum(rolled_dice)
-    dice_rolls = " ".join(expressions)
-    dice_results = " + ".join([str(die) for die in rolled_dice])
-    response = (f"> **{ctx.author.nick}** rolled {dice_rolls}\n" \
-            f"> {dice_results} is **{result}**")
+    end_result = sum(roll_results)
+
+
+    response = f"{ctx.author.nick} rolled dice; the sum is {end_result}"
     await ctx.channel.send(response)
 
+    squashed_expression = []    
+    for side_amount, die_amount in dice_to_roll.items():
+        squashed_expression.append(str(die_amount) + "d" + str(side_amount))
     global roll_history
     roll_history = update_roll_history(
-        roll_history, ctx.author.id, ctx.author.nick, expression
+        roll_history, ctx.author.id, ctx.author.nick, " ".join(squashed_expression)
         )
 
 
@@ -83,6 +96,8 @@ async def r(ctx, *expressions):
 @client.command()
 async def shutdown(ctx):
     """Remote shutdown"""
+    if MY_ID is None:
+        raise TypeError("MY_ID cannot be None")
     if ctx.author.id == int(MY_ID):
         await client.close()
 
@@ -126,4 +141,9 @@ async def cast(ctx, alias):
     await roll(ctx, *db.get_roll(ctx.author.id, alias).split())
 
 
-client.run(TOKEN)
+if __name__ == "__main__":
+    if TOKEN is None:
+        raise TypeError(
+            "TOKEN cannot be None and has to be of string containing a discord token."
+            )
+    client.run(TOKEN)
