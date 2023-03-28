@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 from settings import TOKEN, ROOT, MY_ID 
-from userinput.parse import parse_roll_expression
+from userinput.parse import parse_roll_expression, reverse_to_expression
 from userinput.history import update_roll_history
 from database.transactions import DatabaseActor
 import dice
@@ -53,20 +53,17 @@ async def roll(ctx, *expressions: str):  # Roll, keep short for easier command
     # Will hold a die with the number of times it should be rolled. Example: ([d]6: 8)
     dice_to_roll: dict[int, int] = {}
     for expression in expressions:
-        # Parse every argument send by the user
         try:
             die_amount, side_amount = parse_roll_expression(expression)
-        # When a bad argument is found let user know and stop execution
         except ValueError as error:
-            # Handle by calling roll again with good arguments
             await ctx.channel.send(error)
             return
+        # Squash dice
         try:
-            die_amount_in_dict = dice_to_roll[side_amount] 
-            dice_to_roll[side_amount] = die_amount_in_dict + die_amount
+            curr_saved_die_amount = dice_to_roll[side_amount] 
+            dice_to_roll[side_amount] = curr_saved_die_amount + die_amount
         except KeyError:
             dice_to_roll[side_amount] = die_amount
-        # Roll a type of die times "dice_amount" and add it to rolled_dice
 
     roll_results = []
     for side_amount, die_amount in dice_to_roll.items():
@@ -74,16 +71,13 @@ async def roll(ctx, *expressions: str):  # Roll, keep short for easier command
 
     end_result = sum(roll_results)
 
-
     response = f"{ctx.author.nick} rolled dice; the sum is {end_result}"
     await ctx.channel.send(response)
 
-    squashed_expression = []    
-    for side_amount, die_amount in dice_to_roll.items():
-        squashed_expression.append(str(die_amount) + "d" + str(side_amount))
+    roll_expression = reverse_to_expression(dice_to_roll)
     global roll_history
     roll_history = update_roll_history(
-        roll_history, ctx.author.id, ctx.author.nick, " ".join(squashed_expression)
+        roll_history, ctx.author.id, ctx.author.nick, roll_expression
         )
 
 

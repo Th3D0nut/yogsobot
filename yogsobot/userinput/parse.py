@@ -22,3 +22,15 @@ def parse_roll_expression(expression: str) -> tuple[int, int]:
             "The amount of sides of the die have to be between two and a hundred"
             )
     return dice_amount, side_amount
+
+
+def reverse_to_expression(dice: dict[int, int]) -> str:
+    """Reverse a parsed expression to roll dice back to a format to use as input."""
+    expressions = []    
+    for side_amount, die_amount in dice.items():
+        if die_amount == 1:
+            # d<n> is interpreted as 1d<n> so the 1 is unnecessary
+            expressions.append("d" + str(side_amount))
+        else:
+            expressions.append(str(die_amount) + "d" + str(side_amount))
+    return " ".join(expressions)

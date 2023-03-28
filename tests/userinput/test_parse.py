@@ -1,6 +1,6 @@
 import pytest
 
-from yogsobot.userinput.parse import parse_roll_expression
+from yogsobot.userinput.parse import parse_roll_expression, reverse_to_expression
 
 
 @pytest.mark.parametrize("expression, expected_dice, expected_sides", [
@@ -29,3 +29,13 @@ def test_parse_die_expression_with_accepted_input(
 def test_throws_value_error_with_unaccepted_input(expression):
     with pytest.raises(ValueError):
         parse_roll_expression(expression)
+
+
+def test_reverse_to_expression():
+    dice = {
+        8: 2,  # d8 and roll it 2 times
+        10: 4,
+        20: 1
+    }
+    _reversed = reverse_to_expression(dice)
+    assert _reversed == "2d8 4d10 d20"
