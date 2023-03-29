@@ -9,10 +9,9 @@ def roll(side_amount):
         raise ValueError("The amount of sides need to be a minimum of two.")
 
 
-def roll_multiple(*side_amounts):
-    """Returns the sum of multiple dice rolls."""
-    result = []
-    for side_amount in side_amounts:
-        result.append(roll(side_amount=side_amount))
-        
-    return sum(result)
+def roll_all(dice_to_roll: dict[int, int]) -> list[int]:
+    results = []
+    for side_amount in dice_to_roll:
+        for _ in range(dice_to_roll[side_amount]):
+            results.append(roll(side_amount))
+    return results

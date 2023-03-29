@@ -24,6 +24,23 @@ def parse_roll_expression(expression: str) -> tuple[int, int]:
     return dice_amount, side_amount
 
 
+def parse_roll_input(roll_input: tuple[str]) -> dict[int, int]:
+    dice_to_roll = {}
+    for roll_expression in roll_input:
+        try:
+            die_amount, side_amount = parse_roll_expression(roll_expression)
+        except ValueError as error:
+            raise ValueError(error)
+        # Squash dice
+        try:
+            curr_saved_die_amount = dice_to_roll[side_amount] 
+            dice_to_roll[side_amount] = curr_saved_die_amount + die_amount
+        except KeyError:
+            dice_to_roll[side_amount] = die_amount
+    
+    return dice_to_roll
+
+
 def reverse_to_expression(dice: dict[int, int]) -> str:
     """Reverse a parsed expression to roll dice back to a format to use as input."""
     expressions = []    

@@ -5,7 +5,10 @@ import discord
 from discord.ext import commands
 
 from settings import TOKEN, ROOT, MY_ID 
-from userinput.parse import parse_roll_expression, reverse_to_expression
+from userinput.parse import (
+    parse_roll_input,
+    reverse_to_expression,
+    )
 from userinput.history import update_roll_history
 from database.transactions import DatabaseActor
 import dice
@@ -50,31 +53,24 @@ async def roll(ctx, *expressions: str):  # Roll, keep short for easier command
     Arguments can be of <amount_of_rolls>"d"<side_amount>.
     So for example '2d6' will roll two dice with six sides.
     """
-    # Will hold a die with the number of times it should be rolled. Example: ([d]6: 8)
-    dice_to_roll: dict[int, int] = {}
-    for expression in expressions:
-        try:
-            die_amount, side_amount = parse_roll_expression(expression)
-        except ValueError as error:
-            await ctx.channel.send(error)
-            return
-        # Squash dice
-        try:
-            curr_saved_die_amount = dice_to_roll[side_amount] 
-            dice_to_roll[side_amount] = curr_saved_die_amount + die_amount
-        except KeyError:
-            dice_to_roll[side_amount] = die_amount
+    try:
+        # Will hold dice with the number of times it should be rolled. Example: ([d]6: 8)
+        dice_to_roll = parse_roll_input(expressions)
+    except ValueError as error:
+        await ctx.channel.send(error)
+        return
 
-    roll_results = []
-    for side_amount, die_amount in dice_to_roll.items():
-        roll_results.append(dice.roll(side_amount))
-
-    end_result = sum(roll_results)
-
-    response = f"{ctx.author.nick} rolled dice; the sum is {end_result}"
-    await ctx.channel.send(response)
+    results = dice.roll_all(dice_to_roll)
+    summed = sum(results)
 
     roll_expression = reverse_to_expression(dice_to_roll)
+    response = (
+        f"> **{ctx.author.nick}** rolled {roll_expression}\n"
+        f"> Individual results are: {' + '.join([str(results) for results in results])}\n"
+        f"> The sum is **{summed}**"
+        )
+    await ctx.channel.send(response)
+
     global roll_history
     roll_history = update_roll_history(
         roll_history, ctx.author.id, ctx.author.nick, roll_expression
