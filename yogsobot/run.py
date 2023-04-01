@@ -24,6 +24,8 @@ PATH_TO_DB = os.path.join(ROOT, "aliasroll.db")
 db = DatabaseActor(PATH_TO_DB)
 db.init_tables()
 
+SAVE_EXIT_COMMANDS= ["q", "quit", "stop", "exit"]  # used in the save function
+
 
 @client.event
 async def on_ready():
@@ -65,7 +67,7 @@ async def roll(ctx, *expressions: str):
 
     roll_expression = reverse_to_expression(dice_to_roll)
     response = (
-        f"> **{ctx.author.nick}** rolled {roll_expression}\n"
+        f"> **{ctx.author.display_name}** rolled {roll_expression}\n"
         f"> Individual results are: {' + '.join([str(results) for results in results])}\n"
         f"> The sum is **{summed}**"
         )
@@ -73,24 +75,27 @@ async def roll(ctx, *expressions: str):
 
     global roll_history
     roll_history = update_roll_history(
-        roll_history, ctx.author.id, ctx.author.nick, roll_expression
+        roll_history, ctx.author.id, ctx.author.display_name, roll_expression
         )
 
 
 @client.command()
-async def shutdown(ctx):
+async def shutdown(ctx) -> None:
     """Remote shutdown"""
     if MY_ID is None:
         raise TypeError("MY_ID cannot be None")
     if ctx.author.id == int(MY_ID):
-        await client.close()
+        await client.close()  # client is global
 
 
 @client.command()
-async def save(ctx, alias=None):
+async def save(ctx, alias: str | None = None) -> None:
     """
     Alias and save the last rolled set of dice for a user.
+
+    When no alias is passed a user will be prompted to send one.
     """
+    # Check if alias exist; otherwise prompt user for one
     if not alias:
         await ctx.channel.send("Alias for roll save?")
         alias_requester_id = ctx.author.id
@@ -99,17 +104,21 @@ async def save(ctx, alias=None):
             msg = await client.wait_for('message')
             if alias_requester_id == ctx.author.id:
                 alias = msg.content.strip()  # Strip to account for accidental spacebar strokes
+                if alias in SAVE_EXIT_COMMANDS:  # Global variable
+                    await ctx.channel.send("Exit command given, not storing command")
+                    return
 
     if " " in alias:
-        raise ValueError("No whitespace in alias allowed")
+        error_text = "No whitespace in alias allowed"
+        await ctx.channeld.send(error_text)
+        raise ValueError(error_text)
 
     discord_id = ctx.author.id
     last_roll = None
     try:
-        last_roll = " ".join(roll_history[discord_id]["expression"])
+        last_roll = roll_history[discord_id]["expression"]
     except KeyError:
-        return await ctx.channel.send("Previous roll not found for this user.")
-
+        return await ctx.channel.send("Roll history not found. Roll some dice first!")
 
     try:
         db.save_user(discord_id)
