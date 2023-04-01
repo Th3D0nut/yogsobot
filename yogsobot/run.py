@@ -44,8 +44,8 @@ async def helpme(ctx):
     await ctx.channel.send(msg)
 
 
-@client.command()
-async def roll(ctx, *expressions: str):  # Roll, keep short for easier command
+@client.command(pass_context=True, aliases=["r"])
+async def roll(ctx, *expressions: str):
     """
     Roll dice!
 
@@ -75,12 +75,6 @@ async def roll(ctx, *expressions: str):  # Roll, keep short for easier command
     roll_history = update_roll_history(
         roll_history, ctx.author.id, ctx.author.nick, roll_expression
         )
-
-
-@client.command()
-async def r(ctx, *expressions):
-    """Shorthand for roll function."""
-    await roll(ctx, *expressions)
 
 
 @client.command()
