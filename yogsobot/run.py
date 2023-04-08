@@ -47,7 +47,7 @@ async def helpme(ctx):
 
 
 @client.command(pass_context=True, aliases=["r"])
-async def roll(ctx, *expressions: str):
+async def roll(ctx, *expressions: str) -> None:
     """
     Roll dice!
 
@@ -110,7 +110,7 @@ async def save(ctx, alias: str | None = None) -> None:
 
     if " " in alias:
         error_text = "No whitespace in alias allowed"
-        await ctx.channeld.send(error_text)
+        await ctx.channel.send(error_text)
         raise ValueError(error_text)
 
     discord_id = ctx.author.id
