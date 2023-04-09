@@ -27,6 +27,13 @@ db.init_tables()
 SAVE_EXIT_COMMANDS= ["q", "quit", "stop", "exit"]  # used in the save function
 
 
+def get_last_roll(roll_history: dict[str, dict[str, str]], discord_id: str) -> str:
+    try:
+        return roll_history[discord_id]["expression"]
+    except KeyError:
+        return ""
+
+
 @client.event
 async def on_ready():
     print(f"{client.user} has joined the server!")
@@ -92,41 +99,28 @@ async def shutdown(ctx) -> None:
 async def save(ctx, alias: str | None = None) -> None:
     """
     Alias and save the last rolled set of dice for a user.
-
-    When no alias is passed a user will be prompted to send one.
     """
-    # Check if alias exist; otherwise prompt user for one
-    if not alias:
-        await ctx.channel.send("Alias for roll save?")
-        alias_requester_id = ctx.author.id
-
-        while True:
-            msg = await client.wait_for('message')
-            if alias_requester_id == ctx.author.id:
-                alias = msg.content.strip()  # Strip to account for accidental spacebar strokes
-                if alias in SAVE_EXIT_COMMANDS:  # Global variable
-                    await ctx.channel.send("Exit command given, not storing command")
-                    return
+    if alias is None:
+        error_text = "An alias has to be given, try again like so: '!save <alias>'."
+        await ctx.channel.send(error_text)
+        raise TypeError(error_text)
 
     if " " in alias:
         error_text = "No whitespace in alias allowed"
         await ctx.channel.send(error_text)
         raise ValueError(error_text)
 
-    discord_id = ctx.author.id
-    last_roll = None
-    try:
-        last_roll = roll_history[discord_id]["expression"]
-    except KeyError:
+    last_roll: str = get_last_roll(roll_history, discord_id=ctx.author.id)
+    if last_roll == "":
         return await ctx.channel.send("Roll history not found. Roll some dice first!")
 
     try:
-        db.save_user(discord_id)
+        db.save_user(ctx.author.id)
     except IntegrityError:
         # Do nothing when user already exists
         pass
     if last_roll is not None:
-        db.save_roll(discord_id, alias, last_roll)
+        db.save_roll(ctx.author.id, alias, last_roll)
 
 
 @client.command()
