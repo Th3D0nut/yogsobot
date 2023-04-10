@@ -33,20 +33,29 @@ class DatabaseActor:
 
     def save_roll(self, discord_id: str, alias: str, roll_expression: str):
         """Save a roll expression into the database"""
-        self.cursor.execute("""
-            INSERT INTO roll_alias (user_id, alias, roll_expression)
-                VALUES (?, ?, ?);
-            """,
-            (discord_id, alias, roll_expression)
-        )
+        if self.get_roll(discord_id, alias) is None:
+            self.cursor.execute("""
+                INSERT INTO roll_alias (user_id, alias, roll_expression)
+                    VALUES (?, ?, ?);
+                """,
+                (discord_id, alias, roll_expression)
+            )
+        else:
+            self.cursor.execute("""
+                UPDATE roll_alias
+                    SET roll_expression=?
+                    WHERE user_id=? AND alias=?;""",
+                    (roll_expression, discord_id, alias))
         self.connection.commit()
 
-    def get_roll(self, discord_id: str, alias: str):
+    def get_roll(self, discord_id: str, alias: str) -> str | None:
         """Retrieve a saved roll expression from the database"""
         roll_expression = self.cursor.execute("""
             SELECT roll_expression FROM roll_alias
             WHERE user_id = ? AND alias = ?;
             """,
             (discord_id, alias)
-        ).fetchone()[0]
-        return roll_expression
+        ).fetchone()
+        if roll_expression is not None:
+            return roll_expression[0]
+        return

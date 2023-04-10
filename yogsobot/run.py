@@ -102,7 +102,11 @@ async def save(ctx, alias: str | None = None) -> None:
 
 @client.command()
 async def cast(ctx, alias):
-    await roll(ctx, *db.get_roll(ctx.author.id, alias).split())
+    roll_expression = db.get_roll(ctx.author.id, alias)
+    if roll_expression is not None:
+        await roll(ctx, *roll_expression.split())
+    else:
+        await ctx.channel.send("No alias found to cast.\nRoll and Save one first!")
 
 
 if __name__ == "__main__":
