@@ -61,3 +61,8 @@ def test_get_saved_roll(db):
     db.save_roll(discord_id="12345678", alias="fireball", roll_expression="2d8 d10")
 
     assert db.get_roll(discord_id="12345678", alias="fireball") == "2d8 d10"
+
+
+def test_get_empty_string_when_nothing_is_found(db):
+    db.init_tables()
+    assert db.get_roll(discord_id="12345678", alias="fireball") is None

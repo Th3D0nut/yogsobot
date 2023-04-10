@@ -10,3 +10,10 @@ def update_roll_history(
         "expression": expression,
     }
     return history
+
+
+def get_last_roll(roll_history: dict[str, dict[str, str]], discord_id: str) -> str:
+    try:
+        return roll_history[discord_id]["expression"]
+    except KeyError:
+        return ""
