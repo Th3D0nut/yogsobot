@@ -1,9 +1,12 @@
+import re
 def parse_roll_expression(expression: str) -> tuple[int, int]:
     """From a string describing a dice roll, return the amount of dice and sides"""
-    try:
-        dice_amount, side_amount = expression.lower().split("d")
-    except ValueError:
+    if not re.match(r"\d*d\d+", expression):
         raise ValueError("Must be of form <amount>d<side_amount>.")
+    # try:
+    dice_amount, side_amount = expression.lower().split("d")
+    # except ValueError:
+    #     raise ValueError("Must be of form <amount>d<side_amount>.")
 
     # enter a 1 before d<number> or parse it as is
     if dice_amount:  # account for empty string

@@ -29,6 +29,8 @@ def test_parse_die_expression_with_accepted_input(
     ("0d6"),  # makes no sense too
     ("d1"),  # too little sides
     ("d101"),  # too many sides
+    ("d"),  # Incomplete expression
+    ("ah"),  # Invalid characters
 ])
 def test_throws_value_error_with_unaccepted_input(expression):
     with pytest.raises(ValueError):
