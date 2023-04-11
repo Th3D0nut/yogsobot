@@ -66,3 +66,15 @@ def test_get_saved_roll(db):
 def test_get_empty_string_when_nothing_is_found(db):
     db.init_tables()
     assert db.get_roll(discord_id="12345678", alias="fireball") is None
+
+
+def test_get_all_aliases(db):
+    db.init_tables()
+    db.save_user(discord_id="12345678")
+    db.save_roll(discord_id="12345678", alias="fireball", roll_expression="2d8 d10")
+    db.save_roll(discord_id="12345678", alias="goosebumbs", roll_expression="d20")
+    db.save_roll(discord_id="12345678", alias="fingertingler", roll_expression="3d6 2d10")
+    db.save_roll(discord_id="87654321", alias="fingertingler", roll_expression="3d6 2d10")
+
+    result = db.get_all_aliases(discord_id="12345678")
+    assert result == [('fireball', '2d8 d10'), ('goosebumbs', 'd20'), ('fingertingler', '3d6 2d10')]

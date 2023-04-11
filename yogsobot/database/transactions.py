@@ -59,3 +59,12 @@ class DatabaseActor:
         if roll_expression is not None:
             return roll_expression[0]
         return
+    
+    def get_all_aliases(self, discord_id: str) -> list[tuple[str, str]]:
+        aliases = self.cursor.execute("""
+            SELECT alias, roll_expression FROM roll_alias
+            WHERE user_id = ?
+            """,
+            (discord_id,)
+        ).fetchall()
+        return aliases

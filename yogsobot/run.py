@@ -40,6 +40,15 @@ async def helpme(ctx):
     await ctx.channel.send(msg)
 
 
+@client.command()
+async def shutdown(ctx) -> None:
+    """Remote shutdown"""
+    if MY_ID is None:
+        raise TypeError("MY_ID cannot be None")
+    if ctx.author.id == int(MY_ID):
+        await client.close()  # client is global
+
+
 @client.command(pass_context=True, aliases=["r"])
 async def roll(ctx, *expressions: str) -> None:
     """
@@ -64,15 +73,6 @@ async def roll(ctx, *expressions: str) -> None:
 
 
 @client.command()
-async def shutdown(ctx) -> None:
-    """Remote shutdown"""
-    if MY_ID is None:
-        raise TypeError("MY_ID cannot be None")
-    if ctx.author.id == int(MY_ID):
-        await client.close()  # client is global
-
-
-@client.command()
 async def save(ctx, alias: str | None = None) -> None:
     """
     Alias and save the last rolled set of dice for a user.
@@ -94,7 +94,8 @@ async def save(ctx, alias: str | None = None) -> None:
     try:
         db.save_user(ctx.author.id)
     except IntegrityError:
-        # Do nothing when user already exists
+        # Do nothing when user a:w
+        # lready exists
         pass
     if last_roll is not None:
         db.save_roll(ctx.author.id, alias, last_roll)
@@ -107,6 +108,21 @@ async def cast(ctx, alias):
         await roll(ctx, *roll_expression.split())
     else:
         await ctx.channel.send("No alias found to cast.\nRoll and Save one first!")
+
+
+@client.command()
+async def view(ctx):
+    aliases: list[tuple[str, str]] | None = db.get_all_aliases(ctx.author.id)
+    if aliases is not None:
+        response = (
+            f"> **Aliases of {ctx.author.display_name}**\n"
+            f"> {aliases[0][0]}: {aliases[0][1]}"
+        )
+        for alias, expression in aliases[1:]:
+            response = f"{response}\n> {alias}: {expression}"
+        await ctx.channel.send(response)
+    else:
+        ctx.channel.send(f"No aliases found for {ctx.author.display_name}.")
 
 
 if __name__ == "__main__":
