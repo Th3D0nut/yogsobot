@@ -8,4 +8,6 @@ A Discord dungeons and dragons assistant.
 - Cast previously saved rolls
 
 # Setup
-To be written...
+- Add a bot at the [Discord dev portal](https://discord.com/developers/)
+- Make sure you create a token for this bot and paste that token inside a .env file
+under the name TOKEN

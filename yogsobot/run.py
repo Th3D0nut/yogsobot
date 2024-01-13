@@ -4,7 +4,7 @@ from sqlite3 import IntegrityError
 import discord
 from discord.ext import commands
 
-from settings import TOKEN, ROOT, MY_ID 
+from settings import TOKEN, ROOT, MY_ID
 from userinput.history import update_roll_history, get_last_roll
 from prep import prep_roll
 from database.transactions import DatabaseActor
@@ -18,7 +18,7 @@ intents.message_content = True
 client = commands.Bot(command_prefix='!', intents=intents)
 
 roll_history = {}  # Use update_roll_history to fill this
-SAVE_EXIT_COMMANDS= ["q", "quit", "stop", "exit"]  # used in the save function
+SAVE_EXIT_COMMANDS = ["q", "quit", "stop", "exit"]  # used in the save function
 
 
 @client.event
@@ -67,7 +67,7 @@ async def roll(ctx, *expressions: str) -> None:
             ctx.author.id,
             ctx.author.display_name,
             cleaned_input_expression
-            )
+        )
 
     await ctx.channel.send(response)
 
@@ -129,5 +129,5 @@ if __name__ == "__main__":
     if TOKEN is None:
         raise TypeError(
             "TOKEN cannot be None and has to be of string containing a discord token."
-            )
+        )
     client.run(TOKEN)
